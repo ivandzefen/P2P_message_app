@@ -17,7 +17,7 @@ def get_ip() :
     s.close()
     return ip
 
-tr
+
 
 def recieve_msg(conn,mmac=gma()) :
     msg_head=conn.recv(constants.HEADER).decode(constants.FORMAT)
