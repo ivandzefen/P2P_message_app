@@ -1,7 +1,10 @@
 import socket
 import constants
 import subprocess
-import mysql.connector
+try :
+    import mysql.connector
+except ModuleNotFoundError :
+    pass
 try:
     from getmac import get_mac_address
     def gma() :
@@ -45,9 +48,9 @@ def db_to_str(dbval) :
     ans='|'.join(ans)
     return ans
 
-def get_user_list(conn=None,name=None):
+def get_user_list(lst,conn=None,name=None):
     if not conn:
-        conn=utilities.send_msg(constants.GET_USER_LIST,constants.SERVER_IP,name,gma(),constants.SERVER_MAC)
+        conn=send_msg(constants.GET_USER_LIST,constants.SERVER_IP,name,gma(),constants.SERVER_MAC)
     msg=recieve_msg(conn)
     disconnect=constants.DISCONNECT_MESSAGE.encode(constants.FORMAT)
     lengthd=str(len(disconnect)).encode(constants.FORMAT)
@@ -56,16 +59,17 @@ def get_user_list(conn=None,name=None):
     conn.send(disconnect)
     conn.close()
     if msg[2]==constants.SERVER_MAC:
-        user_list=dbstr_to_lst(msg[0])
-    return user_list
+        dbstr_to_lst(msg[0],lst)
 
-def dbstr_to_lst(dbstr) :
+
+def dbstr_to_lst(dbstr,last) :
     lst=dbstr.split('|')
-    ans={}
     for i in range(len(lst)):
         lst[i]=lst[i].split('°')
-        ans[lst[i][0]]=lst[i][1:].append(0)
-    return ans
+        fer=lst[i][1:]
+        fer.append(0)
+        fer.append([])
+        last[lst[i][0]]=fer
 
 def send_msg(msg,ip,username,my_mac,your_mac):
     conn=socket.socket(socket.AF_INET,socket.SOCK_STREAM)

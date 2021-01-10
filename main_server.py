@@ -67,19 +67,20 @@ def addUser(mac,ip,username) :
         print(e)
 
 def check_DB() :
-    '''try :
+    try :
         conn=utilities.connect_to_db(db_config)
         cursor=conn.cursor()
-        sql="""delete from onlineUsers where username='ivan' """
+        sql="""delete from onlineUsers where (sysdate()-last_ping)>10 """
         cursor.execute(sql)
         conn.commit()
         cursor.close()
         conn.close()
     except Exception as e:
         print('err::::')
-        print(type(e))'''
+        print(type(e))
 
 def main() :
+    check_DB()
     server=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     server.bind(ADDR)
     print(f'[STARTING] Server starting')

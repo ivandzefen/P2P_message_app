@@ -2,7 +2,8 @@ import socket
 import threading
 import utilities
 import constants
-from getmac import get_mac_address as gma
+import time
+
 
 IP=utilities.get_ip()
 ADDR=(IP,constants.PORT)
@@ -14,28 +15,25 @@ def handleclient(conn,addr,user_list,username):
     while connected:
         msg=utilities.recieve_msg(conn)
         if not msg:
-            pass
-        elif msg[0]==constants.PING_MSG:
+            continue
+        ymac=msg[2]
+        if msg[0]==constants.PING_MSG:
             utilities.sendmsg(username,conn)
         elif msg[0]==constants.DISCONNECT_MESSAGE:
             connected=False
         else :
-            if ip not in user_list:
-                user_list[ip]=[msg[1],[],0]
-            print(f'[NEW MESSAGE] {user_list[ip][0]} : {msg[0]}')
-            if not user_list[ip][2] :
-                user_list[ip][1].append(msg[0])
+            if ymac not in user_list:
+                user_list[ymac]=[ip,msg[1],0,[]]
+            print(f'[NEW MESSAGE] {user_list[ymac][1]} : {msg[0]}')
+            if not user_list[ymac][2] :
+                user_list[ymac][3].append(msg[0])
     conn.close()
-def showLife():
-    while True:
-        utilities.send_msg(constants.PING_MSG,constants.SERVER_IP,checkvalues['username'],utilities.gma(),constants.SERVER_MAC)
-        sleep(10)
 
 def start(user_list,checkvalues):
-    showLife()
     username=str(input('please enter a username : '))
     checkvalues['username']=username
-    user_list=utilities.get_connected_users(name=username)
+    utilities.send_msg(constants.PING_MSG,constants.SERVER_IP,username,utilities.gma(),constants.SERVER_MAC)
+    utilities.get_user_list(name=username,lst=user_list)
     checkvalues['updating']=False
     print('hey')
     server=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -44,6 +42,7 @@ def start(user_list,checkvalues):
     server.listen()
     print(f'[LISTENING] listening at {ADDR}')
     while True:
+        utilities.send_msg(constants.PING_MSG,constants.SERVER_IP,username,utilities.gma(),constants.SERVER_MAC)
         #print('listening')
         conn,addr = server.accept()
         thread = threading.Thread(target=handleclient,args=(conn,addr,user_list,username))

@@ -26,8 +26,8 @@ def chat(addr):
             continue
         conn=utilities.send_msg(msg,ip,username,mac,constants.SERVER_MAC)
         if msg==constants.GET_USER_LIST :
-            print(conn)
-            user_list=utilities.get_user_list(conn=conn)
+            user_list={}
+            utilities.get_user_list(lst=user_list,conn=conn)
             for i in user_list:
                 print(i)
 
