@@ -1,27 +1,32 @@
 import socket
 import constants
 import subprocess
+import uuid
+from getmac import get_mac_address
+
 try :
-    import mysql.connector
+    import requests
 except ModuleNotFoundError :
-    pass
-try:
-    from getmac import get_mac_address
-    def gma() :
-        return get_mac_address()
-except ModuleNotFoundError :
-    import uuid
-    def gma():
-        return ':'.join(['{:02x}'.format((uuid.getnode() >> ele) & 0xff) for ele in range(0,8*6,8)][::-1])
+    import pip
+    pip.main(['install','requests'])
+    import requests
+
+def gma() :
+    mac1=get_mac_address()
+    mac2=':'.join(['{:02x}'.format((uuid.getnode() >> ele) & 0xff) for ele in range(0,8*6,8)][::-1])
+    return mac1 if mac1 else mac2
+
+def _url(endpoint) :
+    return constants.SERVER_URL+endpoint
+
 def get_ip() :
     s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
     s.connect(('8.8.8.8',80))
     ip=s.getsockname()[0]
     s.close()
     return ip
-
-
-
+def ping(mac,ip,username):
+    res=requests.post(_url('/ping'),json={'mac':mac,'ip':ip,'username':username})
 def recieve_msg(conn,mmac=gma()) :
     msg_head=conn.recv(constants.HEADER).decode(constants.FORMAT)
     if msg_head:
@@ -38,38 +43,41 @@ def recieve_msg(conn,mmac=gma()) :
     else :
         return ''
 
-def db_to_str(dbval) :
-    ans=dbval
-    for i in range(len(ans)) :
-        ans[i]=list(ans[i][:-1])
-        for j in range(len(ans[i])):
-            ans[i][j]=str(ans[i][j])
-        ans[i]='°'.join(ans[i])
-    ans='|'.join(ans)
+def db_to_json(dbval) :
+    ans=[]
+    #for i in range(len(ans)) :
+    #    ans[i]=list(ans[i][:-1])
+    #    for j in range(len(ans[i])):
+    #        ans[i][j]=str(ans[i][j])
+    #    ans[i]='°'.join(ans[i])
+    #ans='|'.join(ans)
+    for i in dbval :
+        a={'mac':i[0],'ip':i[1],'username':i[2]}
+        ans.append(a)
     return ans
 
 def get_user_list(lst,conn=None,name=None):
-    if not conn:
-        conn=send_msg(constants.GET_USER_LIST,constants.SERVER_IP,name,gma(),constants.SERVER_MAC)
-    msg=recieve_msg(conn)
-    disconnect=constants.DISCONNECT_MESSAGE.encode(constants.FORMAT)
-    lengthd=str(len(disconnect)).encode(constants.FORMAT)
-    lengthd+=b' '*(constants.HEADER-len(lengthd))
-    conn.send(lengthd)
-    conn.send(disconnect)
-    conn.close()
-    if msg[2]==constants.SERVER_MAC:
-        dbstr_to_lst(msg[0],lst)
+    #if not conn:
+    #    conn=send_msg(constants.GET_USER_LIST,constants.SERVER_IP,name,gma(),constants.SERVER_MAC)
+    #msg=recieve_msg(conn)
+    #disconnect=constants.DISCONNECT_MESSAGE.encode(constants.FORMAT)
+    #lengthd=str(len(disconnect)).encode(constants.FORMAT)
+    #lengthd+=b' '*(constants.HEADER-len(lengthd))
+    #conn.send(lengthd)
+    #conn.send(disconnect)
+    #conn.close()
+    #if msg[2]==constants.SERVER_MAC:
+    res=requests.get(_url('/online_users'))
+    json=res.json()
+    json_to_lst(json,lst)
 
 
-def dbstr_to_lst(dbstr,last) :
-    lst=dbstr.split('|')
-    for i in range(len(lst)):
-        lst[i]=lst[i].split('°')
-        fer=lst[i][1:]
-        fer.append(0)
-        fer.append([])
-        last[lst[i][0]]=fer
+def json_to_lst(json,last) :
+    for i in json:
+        lst=[i['ip'],i['username']]
+        lst.append(0)
+        lst.append([])
+        last[i['mac']]=lst
 
 def send_msg(msg,ip,username,my_mac,your_mac):
     conn=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -92,8 +100,6 @@ def send_msg(msg,ip,username,my_mac,your_mac):
     lengthd+=b' '*(constants.HEADER-len(lengthd))
     conn.send(length)
     conn.send(message)
-    if msg==constants.GET_USER_LIST :
-        return conn
     conn.send(lengthd)
     conn.send(disconnect)
     conn.close()
@@ -115,15 +121,3 @@ def sendmsg(msg,conn,username,my_mac,your_mac):
     conn.send(length)
     conn.send(message)
     return None
-
-def connect_to_db(db_config) :
-    connected=False
-    while not connected :
-        try :
-            conn=mysql.connector.connect(**db_config)
-            connected=True
-            print('connected to database')
-            return conn
-        except Exception as e :
-                print(e)
-                return

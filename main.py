@@ -23,16 +23,20 @@ def begin():
         #print('here')
         username=checkvalues['username']
         for i in user_list :
-            lst.append(i)
-        if  not len(lst) :
+            if i!=mac :
+                lst.append(i)
+
+        if  not len(lst):
             ans=input('no connected users. Wait ?(y/n)')
             if 'y' in ans.lower() :
-                while not len(lst) :
+                while not len(lst)  :
                     utilities.get_user_list(name=username,lst=user_list)
                     for i in user_list :
-                        lst.append(i)
+                        if i!= mac :
+                            lst.append(i)
                     print('waiting...')
                     time.sleep(3)
+                print('done')
             else :
                 checkvalues['update_table']=True
                 checkvalues['updating']=True
@@ -40,7 +44,8 @@ def begin():
             continue
         print('ONLINE')
         for i in range(len(lst)):
-            print(f'{i+1} : {user_list[lst[i]][1]}')
+            if lst[i]!=mac :
+                print(f'{i+1} : {user_list[lst[i]][1]}')
         chat=0
         while not chat :
             try :
@@ -63,7 +68,7 @@ def begin():
             msg=str(input('->'))
             if msg=='EXIT' :
                 inchat=False
-                user_list[ip][2]=0
+                user_list[ymac][2]=0
                 checkvalues['update_table']=True
                 checkvalues['updating']=True
                 continue
