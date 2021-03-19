@@ -1,0 +1,22 @@
+{
+  "name": "Start on Heroku: Python",
+  "description": "test 12",
+  "image": "heroku/python",
+  "repository": "https://github.com/ivandzefen/P2P_message_app",
+  "keywords": ["python", "flask" ],
+  "addons": [ "heroku-mysql" ],
+  "env": {
+    "SECRET_KEY": {
+      "description": "The secret key for the Django application.",
+      "generator": "secret"
+    }
+  },
+  "environments": {
+    "test": {
+      "scripts": {
+        "test-setup": "pip install -r requirements.txt",
+        "test": "python main_server.py"
+      }
+    }
+  }
+}

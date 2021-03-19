@@ -36,8 +36,8 @@ def recieving(server,user_list,username) :
         thread.start()
 
 def start(user_list,checkvalues):
-    username=str(input('please enter a username : '))
-    checkvalues['username']=username
+    //username=str(input('please enter a username : '))
+    //checkvalues['username']=username
     utilities.ping(utilities.gma(),utilities.get_ip(),username)
     utilities.get_user_list(lst=user_list)
     checkvalues['updating']=False
