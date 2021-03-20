@@ -1,3 +1,2 @@
 web: gunicorn app:main_server
-web: gunicorn app:main_server
 
