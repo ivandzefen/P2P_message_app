@@ -1,5 +1,5 @@
 {
-  "name": "Start on Heroku: Python",
+  "name": "test12",
   "description": "test 12",
   "image": "heroku/python",
   "repository": "https://github.com/ivandzefen/P2P_message_app",
